@@ -1,10 +1,10 @@
 #include <iostream>
 #include <chrono>
 #include <random>
-#include <list>
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <cassert>
 class Deck{
 	private:
 		struct Card{
@@ -15,9 +15,9 @@ class Deck{
 		Card *head;
 	public:
 		Deck() : head(nullptr) {}
-		Deck(std::vector<int> v){
+		Deck(const std::vector<int> &v){
 			Card *last = nullptr;
-			for(auto i = v.begin() + 1; i < v.end(); ++i){
+			for(auto i = v.begin(); i < v.end(); ++i){
 				Card *newCard = new Card;
 				newCard->value = *i / 4;
 				newCard->suit = *i % 4;
@@ -31,6 +31,16 @@ class Deck{
 					last = head;
 				}
 			}
+		}
+		unsigned int getPos(const unsigned int &i){
+			Card *cur = head;
+			unsigned int pos = 0;
+			while(cur->value != i / 4 || cur->suit != i % 4){
+				if(cur->value == i / 4)
+					++pos;
+				cur = cur->next;
+			}
+			return pos;
 		}
 		void display(){
 			Card *first = head;
@@ -70,18 +80,34 @@ class Deck{
 						min = cur;
 					cur = cur->next;
 				}
+				if(min == firstUnsorted){
+					lastSorted->next = min;
+					lastSorted = lastSorted->next;
+					firstUnsorted = firstUnsorted->next;
+					lastSorted->next = firstUnsorted;
+					continue;
+				}
 				Card *prev = firstUnsorted;
 				Card *next = min->next;
 				while(prev->next != min) 
 					prev = prev->next;
-				if(lastSorted == nullptr)
+				if(lastSorted == nullptr){
 					lastSorted = min;
+					head = lastSorted;
+				}
 				else{
 					lastSorted->next = min;
 					lastSorted = lastSorted->next;
 				}
 				lastSorted->next = firstUnsorted;
 				prev->next = next;
+			}
+		}
+		~Deck(){
+			while(head != nullptr){
+				Card *next = head->next;
+				delete head;
+				head = next;
 			}
 		}	
 };	
@@ -97,6 +123,16 @@ int main(){
 	unschuffled.display();
 	std::shuffle(deckToShuffle.begin(), deckToShuffle.end(), generator);		
 	Deck shuffled(deckToShuffle);
+	Deck unsorted(deckToShuffle);
 	std::cout << "after shuffling: \n";
 	shuffled.display();
+	shuffled.sort();
+	std::cout << "after sorting: \n";
+	shuffled.display();
+	for(unsigned int i = 0; i < deckSize; ++i){
+		unsigned int posInSorted = shuffled.getPos(i);
+		unsigned int posInUnsorted = unsorted.getPos(i);
+		assert(posInSorted == posInUnsorted);
+	}
+	std::cout << "all asserts OK\n";
 }
