@@ -5,123 +5,98 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
-class card{
+class Deck{
 	private:
-		char value;
-		char suit;
+		struct Card{
+			char value;
+			char suit;
+			Card *next;
+		};
+		Card *head;
 	public:
-		card(const char &v, const char &s) : value(v), suit(s) {}
-		char getValue(){
-			return value;
+		Deck() : head(nullptr) {}
+		Deck(std::vector<int> v){
+			Card *last = nullptr;
+			for(auto i = v.begin() + 1; i < v.end(); ++i){
+				Card *newCard = new Card;
+				newCard->value = *i / 4;
+				newCard->suit = *i % 4;
+				newCard->next = nullptr;
+				if(last != nullptr){
+					last->next = newCard;
+					last = last->next;
+				}
+				else{
+					head = newCard;
+					last = head;
+				}
+			}
 		}
-		char getSuit(){
-			return suit;
+		void display(){
+			Card *first = head;
+			while(first != nullptr){
+				if(first->value < 8)
+					std::cout << first->value + 2;
+				else if(first->value == 8)
+					std::cout << "T";
+				else if(first->value == 9)
+					std::cout << "J";
+				else if(first->value == 10)
+					std::cout << "Q";
+				else if(first->value == 11)
+					std::cout << "K";
+				else 
+					std::cout << "A";
+				if(first->suit == 0)
+					std::cout << "s ";
+				else if(first->suit == 1)
+					std::cout << "c ";
+				else if(first->suit == 2)
+					std::cout << "h ";
+				else
+					std::cout << "d ";
+				first = first->next;
+			}
+			std::cout << "\n";
 		}
-};
-class node{
-	private:
-		card c;
-		node *next;
-	public:
-		node(const char &v, const char &s, node *n) : c(v, s), next(n) {}
-		node* getNext(){
-			return next;
-		}
-		void setNext(node **n){
-			next = *n;
-		}
-		char getValue(){
-			return c.getValue();
-		}
-		char getSuit(){
-			return c.getSuit();
-		}
-};
-void displayDeck(node *first){
-	while(first != nullptr){
-		if(first->getValue() < 8)
-			std::cout << first->getValue() + 2;
-		else if(first->getValue() == 8)
-			std::cout << "T";
-		else if(first->getValue() == 9)
-			std::cout << "J";
-		else if(first->getValue() == 10)
-			std::cout << "Q";
-		else if(first->getValue() == 11)
-			std::cout << "K";
-		else 
-			std::cout << "A";
-		if(first->getSuit() == 0)
-			std::cout << "s ";
-		else if(first->getSuit() == 1)
-			std::cout << "c ";
-		else if(first->getSuit() == 2)
-			std::cout << "h ";
-		else
-			std::cout << "d ";
-		first = first->getNext();
-	}
-}
-template<typename T>
-void displayDeck(T first, T end){
-	while(first != end){
-		if(first->getValue() < 8)
-			std::cout << first->getValue() + 2;
-		else if(first->getValue() == 8)
-			std::cout << "T";
-		else if(first->getValue() == 9)
-			std::cout << "J";
-		else if(first->getValue() == 10)
-			std::cout << "Q";
-		else if(first->getValue() == 11)
-			std::cout << "K";
-		else 
-			std::cout << "A";
-		if(first->getSuit() == 0)
-			std::cout << "s ";
-		else if(first->getSuit() == 1)
-			std::cout << "c ";
-		else if(first->getSuit() == 2)
-			std::cout << "h ";
-		else
-			std::cout << "d ";
-		++first;
-	}
-		std::cout << "\n";
-}
-template<typename T>
-T mySelectionSort(T first, T end){
-	T firstUnsorted = first;
-	while(firstUnsorted != end){
-		T min = firstUnsorted;
-		T cur = min;
-		while(cur != end){
-			if(cur->getValue() < min->getValue())
-				min = cur;
-			++cur;
-		}
-		std::swap(*firstUnsorted, *min);
-		++firstUnsorted;
-	}
-	return first;
-}
+		void sort(){
+			Card *lastSorted = nullptr;
+			Card *firstUnsorted = head;
+			while(firstUnsorted != nullptr){
+				Card *min = firstUnsorted;
+				Card *cur = min;
+				while(cur != nullptr){
+					if(cur->value < min->value)
+						min = cur;
+					cur = cur->next;
+				}
+				Card *prev = firstUnsorted;
+				Card *next = min->next;
+				while(prev->next != min) 
+					prev = prev->next;
+				if(lastSorted == nullptr)
+					lastSorted = min;
+				else{
+					lastSorted->next = min;
+					lastSorted = lastSorted->next;
+				}
+				lastSorted->next = firstUnsorted;
+				prev->next = next;
+			}
+		}	
+};	
 int main(){
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::mt19937 generator(seed);
 	const unsigned int deckSize = 52;
-	std::vector<card> deckToShuffle;
+	std::vector<int> deckToShuffle;
 	for(unsigned int i = 0; i < deckSize; ++i)
-		deckToShuffle.emplace_back(i / 4, i % 4);
+		deckToShuffle.emplace_back(i);
+	Deck unschuffled(deckToShuffle);
 	std::cout << "before shuffling: \n";
-	displayDeck(deckToShuffle.begin(), deckToShuffle.end());
+	unschuffled.display();
 	std::shuffle(deckToShuffle.begin(), deckToShuffle.end(), generator);		
-	node head(deckToShuffle.begin()->getValue(), deckToShuffle.begin()->getSuit(), nullptr);
-	node *last = &head;
+	Deck shuffled(deckToShuffle);
 	std::cout << "after shuffling: \n";
-	for(auto i = deckToShuffle.begin() + 1; i < deckToShuffle.end(); ++i){
-		node newNode(i->getValue(), i->getSuit(), nullptr);
-		last->setNext(&&newNode);
-		last = &newNode;
-	}
-	std::cout << head.getValue() << head.getSuit();
+	shuffled.display();
 }
