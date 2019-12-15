@@ -4,6 +4,7 @@
 #include <map>
 #include <fstream>
 #include <string>
+#include <cassert>
 
 /*!
  *  Narzedzie do zliczania czasu
@@ -70,6 +71,32 @@ private:
 
 	Node* root;
 	int treeSize;
+
+	bool _check(Node *r) {
+		if (r->left && !_check(r->left))
+			return false;
+		if (r->right && !_check(r->right))
+			return false;
+		if (r->left && r->right)
+			return (r->left->key < r->key && r->right->key > r->key);
+		if (r->left)
+			return r->left->key < r->key;
+		if (r->right)
+			return r->right->key > r->key;
+		return true;
+	}
+	int _height(Node *r) {
+		int leftHeight = 0;
+		int rightHeight = 0;
+		if (r->left)
+			leftHeight = _height(r->left);
+		if (r->right)
+			rightHeight = _height(r->right);
+		int balance = rightHeight - leftHeight;
+		assert(balance == r->balance);
+		assert(balance > -2 && balance < 2);
+		return leftHeight > rightHeight ? leftHeight + 1 : rightHeight + 1;
+	}
 public:
 	using key_type = KeyType;
 	using mapped_type = ValueType;
@@ -148,6 +175,7 @@ public:
 				toRotate->balance = 1;
 			}
 		}
+		left->balance = 0;
 		return left;
 	}
 	Node *rotateLeftRight(Node *toRotate) {
@@ -163,7 +191,7 @@ public:
 			right->right->parent = oldParent;
 		right->right = oldParent;
 		oldParent->parent = right;
-		if (right->balance > 0) {
+		if (right->balance < 0) {
 			if (oldParent)
 				oldParent->balance = 1;
 			toRotate->balance = 0;
@@ -180,6 +208,7 @@ public:
 				toRotate->balance = -1;
 			}
 		}
+		right->balance = 0;
 		return right;
 	}
 	void myDestroy(Node *toDestroy) {
@@ -376,6 +405,18 @@ public:
 	size_t size() const {
 		return treeSize;
 	}
+
+	bool checkIntegrity() {
+		if (root)
+			return _check(root);
+		return true;
+	}
+	int checkBalance() {
+		if (root)
+			return _height(root);
+		else
+			return 0;
+	}
 };
 
 #include "tests.h"
@@ -402,6 +443,9 @@ int main()
 			ourTree.insert(word, 0);
 		}
 		size_t elapsed = b1.elapsed();
+		assert(ourTree.checkIntegrity());
+		int height = ourTree.checkBalance();
+		//std::cout << height << "\n";
 
 		Benchmark<std::chrono::nanoseconds> b2;
 		std::map<std::string, int> stlTree;
