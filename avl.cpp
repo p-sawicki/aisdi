@@ -161,7 +161,7 @@ public:
 		if (left->balance > 0) {
 			if (oldParent)
 				oldParent->balance = -1;
-				toRotate->balance = 0;
+			toRotate->balance = 0;
 		}
 		else {
 			if (left->balance == 0) {
