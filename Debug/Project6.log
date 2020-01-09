@@ -1,0 +1,6 @@
+﻿  avl.cpp
+c:\users\meffi\source\repos\project6\project6\avl.cpp(445): warning C4244: 'initializing': conversion from '__int64' to 'size_t', possible loss of data
+c:\users\meffi\source\repos\project6\project6\avl.cpp(458): warning C4244: 'initializing': conversion from '__int64' to 'size_t', possible loss of data
+c:\users\meffi\source\repos\project6\project6\avl.cpp(468): warning C4244: 'initializing': conversion from '__int64' to 'size_t', possible loss of data
+c:\users\meffi\source\repos\project6\project6\avl.cpp(472): warning C4244: 'initializing': conversion from '__int64' to 'size_t', possible loss of data
+  Project6.vcxproj -> C:\Users\Meffi\source\repos\Project6\Debug\Project6.exe
